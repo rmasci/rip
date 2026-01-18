@@ -32,11 +32,17 @@ func Execute() {
 		}
 	}
 
+	// Load configuration
+	AppConfig = LoadConfig()
+
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
 }
+
+// AppConfig holds the global application configuration
+var AppConfig *Config
 
 // init initializes the root command and configures global flags.
 // Currently, no persistent flags are configured, but this function

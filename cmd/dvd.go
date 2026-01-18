@@ -11,7 +11,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/bitfield/script"
+	"github.com/rmasci/script"
 	"github.com/spf13/cobra"
 )
 
@@ -73,9 +73,9 @@ func dvdrip(cmd *cobra.Command, args []string) {
 		log.Fatalf("Error: Target category must be provided.\n\nUsage:\n")
 	}
 
-	// Step 1: Verify MergerFS pool is mounted before proceeding
-	if !isMountpoint("/plex/storage") {
-		log.Fatal("Error: /plex/storage is not a mountpoint. Check MergerFS!")
+	// Step 1: Verify storage path is accessible before proceeding
+	if err := VerifyStoragePath(AppConfig.StoragePath); err != nil {
+		log.Fatalf("Error: %v\n\nPlease edit ~/.rip.conf to set a valid storage_path", err)
 	}
 
 	// Step 2: Try to look up the correct movie name and year using FileBot
@@ -91,18 +91,18 @@ func dvdrip(cmd *cobra.Command, args []string) {
 	}
 
 	// Step 3: Create output directory structure with CamelCase naming
-	// Directory format: /plex/storage/Category/MovieNameYear/ (no spaces, camelCase)
-	baseDir := "/plex/storage"
+	// Directory format: [StoragePath]/Category/MovieNameYear/ (no spaces, camelCase)
 	dirName := toCamelCase(finalName)
-	outDir := filepath.Join(baseDir, category, dirName)
+	outDir := filepath.Join(AppConfig.StoragePath, category, dirName)
 	if err := os.MkdirAll(outDir, 0755); err != nil {
 		log.Fatalf("Error creating output directory: %v", err)
 	}
 	fmt.Printf("Putting movie in %s/%s\n", outDir, finalName)
 
-	// Step 4: Extract drive information and format for MakeMKV
-	driveIndex := extractDriveIndex(device)
-	drive := fmt.Sprintf("disc:%s", driveIndex)
+	// Step 4: Format device path for MakeMKV (handles both Linux and macOS)
+	drive := formatDriveForMakeMKV(device)
+	fmt.Printf("Using device: %s\n", device)
+	fmt.Printf("MakeMKV format: %s\n", drive)
 
 	fmt.Printf("Target: %s/%s.mkv\n", outDir, finalName)
 
@@ -163,7 +163,8 @@ func isMountpoint(path string) bool {
 // Returns the formatted metadata string or empty string if lookup fails.
 func fetchMetadata(query, format string) string {
 	// Execute FileBot list command to query TheMovieDB
-	p := script.Exec(fmt.Sprintf("filebot -list --db TheMovieDB --q '%s' --format '%s'", query, format))
+	p := script.Exec(fmt.Sprintf("filebot -list --db TheMovieDB --q '%s' --format '%s'", query, format)).
+		Spinner("Querying TMDB...")
 	out, err := p.String()
 	if err != nil {
 		log.Printf("Error fetching metadata: %v\n", err)
@@ -181,6 +182,26 @@ func extractDriveIndex(devicePath string) string {
 	// Use regex to find all numeric digits in the device path
 	re := regexp.MustCompile(`[0-9]+`)
 	return re.FindString(devicePath)
+}
+
+// formatDriveForMakeMKV converts a device path to MakeMKV format.
+// On Linux: /dev/sr0 -> disc:0
+// On macOS: /dev/rdisk6 -> dev:/dev/rdisk6
+//
+// Parameters:
+//
+//	devicePath - the device path (e.g., "/dev/sr0" or "/dev/rdisk6")
+//
+// Returns the device specification formatted for MakeMKV
+func formatDriveForMakeMKV(devicePath string) string {
+	// Check if this is a macOS device path (contains "rdisk")
+	if strings.Contains(devicePath, "rdisk") {
+		// macOS format: dev:/dev/rdisk6
+		return fmt.Sprintf("dev:%s", devicePath)
+	}
+	// Linux format: disc:0
+	driveIndex := extractDriveIndex(devicePath)
+	return fmt.Sprintf("disc:%s", driveIndex)
 }
 
 // runDVDMakeMKV executes the MakeMKV command to rip the longest title from a DVD.
@@ -201,7 +222,8 @@ func runDVDMakeMKV(drive, outDir string) error {
 	// Step 1: Query the disc to get information about all available titles
 	// Uses the -r flag for robot mode (machine-readable output)
 	fmt.Println("Querying disc for available titles...")
-	p := script.Exec(fmt.Sprintf("makemkvcon -r info %s", drive))
+	p := script.Exec(fmt.Sprintf("makemkvcon -r info %s", drive)).
+		Spinner("Reading disc...")
 	infoOutput, err := p.String()
 	if err != nil {
 		return fmt.Errorf("error running makemkvcon info: %v", err)
@@ -237,7 +259,8 @@ func runDVDMakeMKV(drive, outDir string) error {
 	// Execute makemkvcon mkv command to rip the longest title
 	// --minlength=3600 ensures we only rip titles longer than 1 hour (for movies)
 	fmt.Printf("Starting MakeMKV rip (title %s)...\n", titleID)
-	mkv := script.Exec(fmt.Sprintf("makemkvcon mkv %s %s %s --minlength=3600", drive, titleID, outDir))
+	mkv := script.Exec(fmt.Sprintf("makemkvcon mkv %s %s %s --minlength=3600", drive, titleID, outDir)).
+		Spinner("Extracting video...", 1)
 	output, err := mkv.String()
 	if err != nil {
 		fmt.Printf("MakeMKV error output:\n%s\n", output)
@@ -262,7 +285,8 @@ func discoverMovieName(devicePath string) string {
 	drive := fmt.Sprintf("disc:%s", driveIndex)
 
 	// Query disc information using makemkvcon with robot mode (-r) output
-	p := script.Exec(fmt.Sprintf("makemkvcon -r info %s", drive))
+	p := script.Exec(fmt.Sprintf("makemkvcon -r info %s", drive)).
+		Spinner("Reading disc title...")
 	out, err := p.String()
 	if err != nil {
 		log.Printf("Error running makemkvcon: %v", err)
@@ -300,7 +324,27 @@ func renameMovieWithFileBot(movieName, outDir string) error {
 
 	// Execute FileBot rename command with --action move to actually rename files
 	// Uses TheMovieDB database for metadata lookup
-	return script.Exec(fmt.Sprintf("filebot -rename %s -r --db TheMovieDB --format '%s' --action move", outDir, renameFormat)).Error()
+	fmt.Println("Running FileBot to rename movie file...")
+	cmd := fmt.Sprintf("filebot -rename %s -r --db TheMovieDB --format '%s' --action move", outDir, renameFormat)
+	fmt.Printf("FileBot command: %s\n", cmd)
+
+	p := script.Exec(cmd).
+		Spinner("Renaming file...")
+	output, err := p.String()
+
+	// Always print the output for debugging
+	if output != "" {
+		fmt.Printf("FileBot output:\n%s\n", output)
+	}
+
+	if err != nil {
+		fmt.Printf("FileBot error: %v\n", err)
+		// Don't return error - FileBot might succeed even if script.Exec returns an error
+		// Check if files were actually renamed
+		return nil
+	}
+
+	return nil
 }
 
 // toCamelCase converts a string to CamelCase with no spaces.

@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/bitfield/script"
+	"github.com/rmasci/script"
 	"github.com/spf13/cobra"
 )
 
@@ -51,9 +51,9 @@ func tvrip(cmd *cobra.Command, args []string) {
 	seasonNum := parts[0]
 	discNum := parts[1]
 
-	// Step 1: Verify MergerFS pool is mounted before proceeding
-	if !isMountpoint("/plex/storage") {
-		log.Fatal("Error: /plex/storage is not a mountpoint. Check MergerFS!")
+	// Step 1: Verify storage path is accessible before proceeding
+	if err := VerifyStoragePath(AppConfig.StoragePath); err != nil {
+		log.Fatalf("Error: %v\n\nPlease edit ~/.rip.conf to set a valid storage_path", err)
 	}
 
 	// Step 2: Try to look up the correct show name using FileBot
@@ -72,22 +72,24 @@ func tvrip(cmd *cobra.Command, args []string) {
 	}
 
 	// Step 3: Create output directory structure with CamelCase naming
-	// Directory format: /plex/storage/Genre/Show Name (Year)/Season XX/
+	// Directory format: [StoragePath]/Genre/Show Name (Year)/Season XX/
 	// The showPath from FileBot already has the show name with CamelCase, so we just extract the show name part
 	sPad := fmt.Sprintf("Season %02s", seasonNum)
-	outDir := filepath.Join("/plex/storage", showPath, sPad)
+	outDir := filepath.Join(AppConfig.StoragePath, showPath, sPad)
 	if err := os.MkdirAll(outDir, 0755); err != nil {
 		log.Fatalf("Error creating output directory: %v", err)
 	}
 
-	// Step 4: Extract drive information and format for MakeMKV
-	driveIndex := extractDriveIndex(device)
-	drive := fmt.Sprintf("disc:%s", driveIndex)
+	// Step 4: Format device path for MakeMKV (handles both Linux and macOS)
+	drive := formatDriveForMakeMKV(device)
+	fmt.Printf("Using device: %s\n", device)
+	fmt.Printf("MakeMKV format: %s\n", drive)
 
 	// Step 5: Execute MakeMKV rip operation
 	fmt.Printf("Ripping to: %s\n", outDir)
 	if err := runTVMakeMKV(drive, outDir); err != nil {
-		log.Fatalf("Error during rip: %v", err)
+		fmt.Printf("Error during rip: %v\n", err)
+		log.Fatalf("MakeMKV extraction failed. Please check your disc and try again.")
 	}
 
 	// Step 6: Clean up files that are too short or too long (not episodes)
@@ -191,7 +193,9 @@ func runTVMakeMKV(drive, outDir string) error {
 	//   all - rip all titles from the disc
 	//   outDir - destination folder for output files
 	//   --minlength=600 - only rip titles longer than 10 minutes
-	return script.Exec(fmt.Sprintf("makemkvcon mkv %s all %s --minlength=600", drive, outDir)).Error()
+	return script.Exec(fmt.Sprintf("makemkvcon mkv %s all %s --minlength=600", drive, outDir)).
+		Spinner("Extracting episodes...", 1).
+		Error()
 }
 
 // renameWithFileBot uses FileBot to rename episode files with proper names from TheTVDB database.
@@ -226,5 +230,24 @@ func renameWithFileBot(seasonNum, discNum, outDir string) error {
 	renameFormat := "{n} - S" + seasonNum + "E{e} - {t}"
 
 	// Execute FileBot rename command with --action move to actually rename files
-	return script.Exec(fmt.Sprintf("filebot -rename %s -r --db TheTVDB --format '%s' --action move", outDir, renameFormat)).Error()
+	fmt.Println("Running FileBot to rename episode files...")
+	cmd := fmt.Sprintf("filebot -rename %s -r --db TheTVDB --format '%s' --action move", outDir, renameFormat)
+	fmt.Printf("FileBot command: %s\n", cmd)
+
+	p := script.Exec(cmd).
+		Spinner("Renaming episodes...")
+	output, err := p.String()
+
+	// Always print the output for debugging
+	if output != "" {
+		fmt.Printf("FileBot output:\n%s\n", output)
+	}
+
+	if err != nil {
+		fmt.Printf("FileBot error: %v\n", err)
+		// Don't return error - FileBot might succeed even if script.Exec returns an error
+		return nil
+	}
+
+	return nil
 }

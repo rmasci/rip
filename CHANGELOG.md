@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Configuration system with `~/.rip.conf` file
+  - Automatically creates `~/.rip.conf` on first run with defaults
+  - Allows users to customize `storage_path` without rebuilding
+  - Config file is human-readable and well-commented
+  - Default storage path is `/plex/storage` (MergerFS mount point)
+  - Supports tilde expansion (`~/path/to/media`)
+- macOS and Linux device path support
+  - macOS: `/dev/rdisk6` → `dev:/dev/rdisk6` for MakeMKV
+  - Linux: `/dev/sr0` → `disc:0` for MakeMKV
+  - Automatic platform detection based on device path
+  - Added `formatDriveForMakeMKV()` function for device formatting
 - Version management system
   - `-v` and `--version` flags show the current version
   - `rip version` command shows version information
@@ -21,6 +32,12 @@ All notable changes to this project will be documented in this file.
   - Directory names are now formatted in CamelCase with no spaces (e.g., `TheMatrix1999` instead of `The Matrix (1999)`)
   - Improves consistency and eliminates issues with special characters in directory names
 - Helper function `toCamelCase()` for consistent string formatting across DVD and TV commands
+
+### Changed
+- Output directory is now configurable via `~/.rip.conf` instead of hardcoded `/plex/storage`
+- Device path handling now supports multiple platforms (Linux and macOS)
+- Both DVD and TV commands now verify storage path is accessible and writable before ripping
+- Improved error messages when storage path is invalid or inaccessible
 
 ### Fixed
 - Improved error handling and logging in DVD ripping workflow
