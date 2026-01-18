@@ -115,12 +115,100 @@ graph TD
     style P fill:#e8f5e9
 ```
 
-### Setting Up MergerFS
+For setup instructions, see the [Setting Up MergerFS](#setting-up-mergerfs) section below.
 
-#### 1. Install MergerFS
+---
+
+## Install
+
+### Prerequisites
+
+This tool is designed for **Linux**. It has not been tested on macOS or Windows.
+
+You'll need the following software installed on your Linux system:
+
+#### Required Tools
+
+- **Go** (1.25.0 or later) - [Install Go](https://golang.org/doc/install)
+- **MakeMKV** - For extracting video from DVDs
+  ```bash
+  # Ubuntu/Debian
+  sudo apt-get install makemkv-bin makemkv-oss
+  
+  # Fedora/RHEL
+  sudo dnf install makemkv-bin makemkv-oss
+  ```
+
+- **FileBot** - For metadata fetching and file renaming
+  ```bash
+  # Ubuntu/Debian - Install via snap or download from filebot.net
+  sudo snap install filebot --classic
+  
+  # Or download from: https://www.filebot.net
+  ```
+
+- **ffprobe** - For detecting file duration (optional but recommended)
+  ```bash
+  # Ubuntu/Debian
+  sudo apt-get install ffmpeg
+  
+  # Fedora/RHEL
+  sudo dnf install ffmpeg
+  ```
+
+#### Optional Setup
+
+- **MergerFS** - If using multiple storage drives, create a pool at `/plex/storage`. See the [Setting Up MergerFS](#setting-up-mergerfs) section for detailed instructions.
+  ```bash
+  sudo apt-get install mergerfs
+  ```
+
+- **Plex Server or Jellyfin** - Install on your server machine to stream your library
+  - [Plex Media Server](https://www.plex.tv/downloads/)
+  - [Jellyfin](https://jellyfin.org/docs/general/installation/)
+
+### Building from Source
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/rmasci/rip.git
+   cd rip
+   ```
+
+2. **Build the binary**:
+   ```bash
+   # Build for your current platform
+   go build -o rip .
+   
+   # Or use the Makefile for multiple platforms
+   make all  # Builds for Linux, macOS, and Windows
+   ```
+
+3. **Install to PATH** (optional):
+   ```bash
+   sudo cp rip /usr/local/bin/
+   chmod +x /usr/local/bin/rip
+   ```
+
+   Now you can run `rip` from anywhere on your system.
+
+### Using Pre-built Binaries
+
+Pre-built binaries are available in the `binaries/` directory:
+- `binaries/linux/rip` - Linux x86_64
+- `binaries/mac/rip` - macOS ARM64
+- `binaries/windows/rip.exe` - Windows x86_64
+
+Download the appropriate binary for your system and add it to your PATH.
+
+---
+
+## Setting Up MergerFS
+
+### 1. Install MergerFS
 Use your distribution's package manager to install `mergerfs`.
 
-#### 2. Prepare Your Drives
+### 2. Prepare Your Drives
 Format and mount your drives to separate locations:
 
 ```bash
@@ -133,7 +221,7 @@ sudo mount /dev/sdb1 /mnt/disk2
 sudo mount /dev/sdc1 /mnt/disk3
 ```
 
-#### 3. Create the MergerFS Pool
+### 3. Create the MergerFS Pool
 ```bash
 # Create the pool mount point
 sudo mkdir -p /plex/storage
@@ -143,7 +231,7 @@ sudo mergerfs -o allow_other,use_ino,cache.files=off,dropcacheonclose=true \
   /mnt/disk1:/mnt/disk2:/mnt/disk3 /plex/storage
 ```
 
-#### 4. Verify It Works
+### 4. Verify It Works
 ```bash
 # Check the total capacity
 df -h /plex/storage
@@ -222,95 +310,6 @@ If MergerFS doesn't suit your needs:
 - **SnapRAID**: Parity-based backup layer on top of regular drives
 
 For most home users, MergerFS is the simplest solution for pooling drives.
-
----
-
-## Install
-
-### Prerequisites
-
-This tool is designed for **Linux**. It has not been tested on macOS or Windows.
-
-You'll need the following software installed on your Linux system:
-
-#### Required Tools
-
-- **Go** (1.25.0 or later) - [Install Go](https://golang.org/doc/install)
-- **MakeMKV** - For extracting video from DVDs
-  ```bash
-  # Ubuntu/Debian
-  sudo apt-get install makemkv-bin makemkv-oss
-  
-  # Fedora/RHEL
-  sudo dnf install makemkv-bin makemkv-oss
-  ```
-
-- **FileBot** - For metadata fetching and file renaming
-  ```bash
-  # Ubuntu/Debian - Install via snap or download from filebot.net
-  sudo snap install filebot --classic
-  
-  # Or download from: https://www.filebot.net
-  ```
-
-- **ffprobe** - For detecting file duration (optional but recommended)
-  ```bash
-  # Ubuntu/Debian
-  sudo apt-get install ffmpeg
-  
-  # Fedora/RHEL
-  sudo dnf install ffmpeg
-  ```
-
-#### Optional Setup
-
-- **MergerFS** - If using multiple storage drives, create a pool at `/plex/storage`
-  ```bash
-  sudo apt-get install mergerfs
-  # Configure your merge point as /plex/storage
-  ```
-
-- **Plex Server or Jellyfin** - Install on your server machine to stream your library
-  - [Plex Media Server](https://www.plex.tv/downloads/)
-  - [Jellyfin](https://jellyfin.org/docs/general/installation/)
-
-### Building from Source
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/rmasci/rip.git
-   cd rip
-   ```
-
-2. **Build the binary**:
-   ```bash
-   # Build for your current platform
-   go build -o rip .
-   
-   # Or use the Makefile for multiple platforms
-   make all  # Builds for Linux, macOS, and Windows
-   ```
-
-3. **Install to PATH** (optional):
-   ```bash
-   sudo cp rip /usr/local/bin/
-   chmod +x /usr/local/bin/rip
-   ```
-
-   Now you can run `rip` from anywhere on your system.
-
-### Using Pre-built Binaries
-
-Pre-built binaries are available in the `binaries/` directory:
-- `binaries/linux/rip` - Linux x86_64
-- `binaries/mac/rip` - macOS ARM64
-- `binaries/windows/rip.exe` - Windows x86_64
-
-Download the appropriate binary for your system and add it to your PATH.
-
----
-
-## Usage
 
 ### Basic Commands
 
