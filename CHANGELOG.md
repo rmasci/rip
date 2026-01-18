@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Version management system
+  - `-v` and `--version` flags show the current version
+  - `rip version` command shows version information
+  - Version is automatically injected at build time via ldflags
+  - Versions match git tags (e.g., v0.1.0)
+  - Patch version automatically increments on each `make release`
+- Version script (`scripts/next-version.sh`)
+  - Calculates next patch version based on current git tags
+  - Used by Makefile to increment version automatically
 - FileBot integration for movie/show name lookup and verification
   - When using `-m "movie name"` or specifying a show name, FileBot now looks up the correct name and year from TMDB/TheTVDB
   - Falls back to user-provided name if FileBot lookup fails

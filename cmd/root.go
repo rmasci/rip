@@ -22,8 +22,16 @@ This tool is ideal for creating a well-structured media library compatible with 
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
+// This is called by main.main(). It only needs to happen once per run.
 func Execute() {
+	// Check for -v or --version flag before processing commands
+	for _, arg := range os.Args[1:] {
+		if arg == "-v" || arg == "--version" {
+			fmt.Printf("rip version %s\n", Version)
+			os.Exit(0)
+		}
+	}
+
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
