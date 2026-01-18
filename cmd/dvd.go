@@ -108,8 +108,10 @@ func dvdrip(cmd *cobra.Command, args []string) {
 
 	// Step 5: Execute MakeMKV rip operation (rips the longest title)
 	if err := runDVDMakeMKV(drive, outDir); err != nil {
-		fmt.Println("Longest failed, attempting Stage 2...")
-		// Add fallback logic here (Stage 2, 3, etc.)
+		fmt.Printf("Error during MakeMKV rip: %v\n", err)
+		fmt.Println("Attempting fallback strategies...")
+		// Could add fallback logic here (Stage 2, 3, etc.)
+		log.Fatalf("MakeMKV extraction failed. Please check your DVD and try again.")
 	}
 
 	// Step 6: Rename movie file with metadata from TheMovieDB
@@ -198,6 +200,7 @@ func runDVDMakeMKV(drive, outDir string) error {
 
 	// Step 1: Query the disc to get information about all available titles
 	// Uses the -r flag for robot mode (machine-readable output)
+	fmt.Println("Querying disc for available titles...")
 	p := script.Exec(fmt.Sprintf("makemkvcon -r info %s", drive))
 	infoOutput, err := p.String()
 	if err != nil {
@@ -225,12 +228,24 @@ func runDVDMakeMKV(drive, outDir string) error {
 	// Step 3: Run the mkv rip command with the longest title ID, or fall back to title 0
 	titleID := longestTitleID
 	if titleID == "" {
+		fmt.Println("Warning: Could not determine longest title, using title 0")
 		titleID = "0"
+	} else {
+		fmt.Printf("Found longest title: %s (duration: %d seconds)\n", titleID, maxDuration)
 	}
 
 	// Execute makemkvcon mkv command to rip the longest title
 	// --minlength=3600 ensures we only rip titles longer than 1 hour (for movies)
-	return script.Exec(fmt.Sprintf("makemkvcon mkv %s %s %s --minlength=3600", drive, titleID, outDir)).Error()
+	fmt.Printf("Starting MakeMKV rip (title %s)...\n", titleID)
+	mkv := script.Exec(fmt.Sprintf("makemkvcon mkv %s %s %s --minlength=3600", drive, titleID, outDir))
+	output, err := mkv.String()
+	if err != nil {
+		fmt.Printf("MakeMKV error output:\n%s\n", output)
+		return fmt.Errorf("makemkvcon mkv command failed: %v", err)
+	}
+
+	fmt.Printf("MakeMKV output:\n%s\n", output)
+	return nil
 }
 
 // discoverMovieName attempts to extract the movie title from the DVD disc metadata using MakeMKV.

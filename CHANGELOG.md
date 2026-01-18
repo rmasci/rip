@@ -22,6 +22,13 @@ All notable changes to this project will be documented in this file.
   - Improves consistency and eliminates issues with special characters in directory names
 - Helper function `toCamelCase()` for consistent string formatting across DVD and TV commands
 
+### Fixed
+- Improved error handling and logging in DVD ripping workflow
+  - MakeMKV errors are now properly captured and displayed
+  - Added detailed progress messages during title detection
+  - Added MakeMKV output logging for debugging failed rips
+  - Fatal error on MakeMKV failure instead of silently continuing
+
 ## [0.1.0] - 2026-01-18
 
 ### Added
