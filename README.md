@@ -278,8 +278,8 @@ You'll need the following software installed on your Linux system:
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/rmasci/dvdrip.git
-   cd dvdrip
+   git clone https://github.com/rmasci/rip.git
+   cd rip
    ```
 
 2. **Build the binary**:
