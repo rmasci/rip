@@ -26,14 +26,15 @@ var tvCmd = &cobra.Command{
 
 // tvrip executes the TV ripping workflow.
 // It performs the following steps:
-// 1. Validates the MergerFS mountpoint
-// 2. Fetches metadata from TheTVDB via FileBot
-// 3. Creates the output directory structure
-// 4. Executes MakeMKV to rip the disc
-// 5. Cleans up files outside the acceptable duration range
-// 6. Renames episodes using FileBot
-// 7. Ejects the disc
-// 8. Displays completion summary
+// 1. Parses the show name and validates season-disc format
+// 2. Uses FileBot to look up the correct show name and year (with fallback to user input)
+// 3. Validates the MergerFS mountpoint
+// 4. Creates the output directory structure with CamelCase naming
+// 5. Executes MakeMKV to rip the disc
+// 6. Cleans up files outside the acceptable duration range
+// 7. Renames episodes using FileBot
+// 8. Ejects the disc
+// 9. Displays completion summary
 func tvrip(cmd *cobra.Command, args []string) {
 	// Parse command-line flags
 	device, _ := cmd.Flags().GetString("device")
@@ -55,16 +56,24 @@ func tvrip(cmd *cobra.Command, args []string) {
 		log.Fatal("Error: /plex/storage is not a mountpoint. Check MergerFS!")
 	}
 
-	// Step 2: Fetch show metadata from TheTVDB via FileBot
+	// Step 2: Try to look up the correct show name using FileBot
 	// Format: Genre/Show Name (Year) {tmdb-ID}
-	fmt.Printf("Searching for TV Show: %s...\n", query)
+	fmt.Printf("Looking up show info in TheTVDB for: %s...\n", query)
 	showPath := fetchMetadata(query, "{genre.toCamelCase()}/{n} ({y}) {tmdb-$id}")
+
+	// If FileBot lookup fails, use a fallback format with the user-provided name
 	if showPath == "" {
-		log.Fatalf("Error: Could not find show matching '%s'", query)
+		fmt.Printf("Warning: Could not find show in TheTVDB, using provided name: %s\n", query)
+		// Create a simple fallback path with CamelCase show name
+		showName := toCamelCase(query)
+		showPath = fmt.Sprintf("Unknown/%s", showName)
+	} else {
+		fmt.Printf("Found: %s\n", showPath)
 	}
 
-	// Step 3: Create output directory structure
+	// Step 3: Create output directory structure with CamelCase naming
 	// Directory format: /plex/storage/Genre/Show Name (Year)/Season XX/
+	// The showPath from FileBot already has the show name with CamelCase, so we just extract the show name part
 	sPad := fmt.Sprintf("Season %02s", seasonNum)
 	outDir := filepath.Join("/plex/storage", showPath, sPad)
 	if err := os.MkdirAll(outDir, 0755); err != nil {

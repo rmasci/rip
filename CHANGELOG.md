@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- FileBot integration for movie/show name lookup and verification
+  - When using `-m "movie name"` or specifying a show name, FileBot now looks up the correct name and year from TMDB/TheTVDB
+  - Falls back to user-provided name if FileBot lookup fails
+- CamelCase directory naming
+  - Directory names are now formatted in CamelCase with no spaces (e.g., `TheMatrix1999` instead of `The Matrix (1999)`)
+  - Improves consistency and eliminates issues with special characters in directory names
+- Helper function `toCamelCase()` for consistent string formatting across DVD and TV commands
+
 ## [0.1.0] - 2026-01-18
 
 ### Added

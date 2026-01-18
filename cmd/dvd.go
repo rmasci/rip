@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/bitfield/script"
 	"github.com/spf13/cobra"
@@ -31,13 +32,14 @@ you to provide a physical device path, a category, and optionally a movie name.`
 // dvdrip executes the DVD ripping workflow.
 // It performs the following steps:
 // 1. Discovers or accepts the movie name from the DVD or user input
-// 2. Validates the MergerFS mountpoint
-// 3. Fetches metadata from TheMovieDB via FileBot
-// 4. Creates the output directory structure
-// 5. Executes MakeMKV to rip the longest title
-// 6. Renames the movie file using FileBot
-// 7. Ejects the disc
-// 8. Displays completion summary
+// 2. Uses FileBot to look up the correct movie name and year (with fallback to user input)
+// 3. Validates the MergerFS mountpoint
+// 4. Fetches metadata from TheMovieDB via FileBot
+// 5. Creates the output directory structure with CamelCase naming
+// 6. Executes MakeMKV to rip the longest title
+// 7. Renames the movie file using FileBot
+// 8. Ejects the disc
+// 9. Displays completion summary
 func dvdrip(cmd *cobra.Command, args []string) {
 	// Parse command-line flags
 	device, _ := cmd.Flags().GetString("device")
@@ -76,18 +78,23 @@ func dvdrip(cmd *cobra.Command, args []string) {
 		log.Fatal("Error: /plex/storage is not a mountpoint. Check MergerFS!")
 	}
 
-	// Step 2: Fetch movie metadata from TheMovieDB via FileBot
+	// Step 2: Try to look up the correct movie name and year using FileBot
 	// Format: Movie Name (Year)
-	fmt.Printf("Searching TMDB for: %s...\n", query)
+	fmt.Printf("Looking up movie info in TMDB for: %s...\n", query)
 	finalName := fetchMetadata(query, "{n} ({y})")
 	if finalName == "" {
-		log.Fatalf("Error: Could not find movie matching '%s'", query)
+		// Fallback to user-provided name if FileBot lookup fails
+		fmt.Printf("Warning: Could not find movie in TMDB, using provided name: %s\n", query)
+		finalName = query
+	} else {
+		fmt.Printf("Found: %s\n", finalName)
 	}
 
-	// Step 3: Create output directory structure
-	// Directory format: /plex/storage/Category/Movie Name (Year)/
+	// Step 3: Create output directory structure with CamelCase naming
+	// Directory format: /plex/storage/Category/MovieNameYear/ (no spaces, camelCase)
 	baseDir := "/plex/storage"
-	outDir := filepath.Join(baseDir, category, strings.Replace(finalName, " ", "", -1))
+	dirName := toCamelCase(finalName)
+	outDir := filepath.Join(baseDir, category, dirName)
 	if err := os.MkdirAll(outDir, 0755); err != nil {
 		log.Fatalf("Error creating output directory: %v", err)
 	}
@@ -279,4 +286,37 @@ func renameMovieWithFileBot(movieName, outDir string) error {
 	// Execute FileBot rename command with --action move to actually rename files
 	// Uses TheMovieDB database for metadata lookup
 	return script.Exec(fmt.Sprintf("filebot -rename %s -r --db TheMovieDB --format '%s' --action move", outDir, renameFormat)).Error()
+}
+
+// toCamelCase converts a string to CamelCase with no spaces.
+// It removes all spaces and special characters (except alphanumeric), and converts to PascalCase.
+// For example:
+//
+//	"The Matrix (1999)" -> "TheMatrix1999"
+//	"Inception" -> "Inception"
+//	"Star Wars: A New Hope (1977)" -> "StarWarsANewHope1977"
+//
+// Parameters:
+//
+//	s - the string to convert
+//
+// Returns the CamelCase version of the string with no spaces.
+func toCamelCase(s string) string {
+	// Remove special characters and split on spaces
+	var result strings.Builder
+	words := strings.FieldsFunc(s, func(r rune) bool {
+		// Split on spaces and special characters (keep only alphanumeric)
+		return !unicode.IsLetter(r) && !unicode.IsDigit(r)
+	})
+
+	// Capitalize first letter of each word
+	for _, word := range words {
+		if len(word) > 0 {
+			// Capitalize first rune, keep rest as-is
+			result.WriteRune(unicode.ToUpper(rune(word[0])))
+			result.WriteString(word[1:])
+		}
+	}
+
+	return result.String()
 }
