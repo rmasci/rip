@@ -1,0 +1,136 @@
+Business Source License 1.1
+
+Parameters
+
+Licensor:             Richard Masci
+Licensed Work:        rip
+                      The Licensed Work is (c) 2026 Richard Masci
+Change Date:          January 18, 2027
+Change License:       MIT
+
+For information about alternative licensing arrangements for the Licensed Work,
+please contact: rmasci@github.com
+
+Notice
+
+Business Source License 1.1
+
+This Business Source License (this "Agreement") is entered into effective as of
+the date of first download or use of the Licensed Work (the "Effective Date")
+by the party accepting this Agreement ("Licensee") and Richard Masci ("Licensor").
+
+1. DEFINITIONS
+
+   1.1 "Affiliate" means any legal entity that, directly or indirectly through
+       one or more intermediaries, controls, is controlled by or is under
+       common control with the subject entity.
+
+   1.2 "Change Date" means January 18, 2027.
+
+   1.3 "Change License" means the MIT License.
+
+   1.4 "Covered Code" has the meaning assigned to it in the Mozilla Public
+       License Version (MPL) 1.1, provided that the Covered Code includes all
+       software distributed under this Agreement.
+
+   1.5 "Licensor" means Richard Masci.
+
+   1.6 "Licensed Work" means the software and documentation made available under
+       this Agreement.
+
+   1.7 "Licensee" means the entity accepting this Agreement.
+
+   1.8 "Non-Commercial Use" means any use or activity where the primary
+       commercial purpose is not the sale, licensing, or distribution of the
+       Licensed Work itself, but rather the Licensed Work is used to support
+       your primary commercial purpose. However, if your primary commercial
+       purpose is substantially derived from the Licensed Work, this would
+       constitute Commercial Use.
+
+   1.9 "Commercial Use" means any activity where the Licensed Work is
+       leveraged, directly or indirectly, as the primary purpose of generating
+       revenue or profit.
+
+2. LICENSE GRANT
+
+   2.1 Subject to the limitations in Section 3, Licensor hereby grants Licensee
+       a non-exclusive, non-transferable license under the Licensor's copyright
+       interest in the Licensed Work to use the Licensed Work for
+       Non-Commercial Use for the term of this Agreement.
+
+   2.2 For Commercial Use, Licensee may not use or deploy the Licensed Work
+       without either:
+       (a) Obtaining a separate commercial license from Licensor; or
+       (b) Waiting until the Change Date.
+
+   2.3 On the Change Date, this Agreement will automatically convert to the
+       Change License, and Licensor hereby grants Licensee a license under the
+       Change License to use the Licensed Work.
+
+3. RESTRICTIONS
+
+   3.1 Licensee may not offer the Licensed Work as a service or embed it in
+       a commercial service offering.
+
+   3.2 Licensee may not modify or create derivative works for Commercial Use
+       without explicit written permission from Licensor.
+
+   3.3 Licensee may not distribute the Licensed Work to third parties without
+       including this entire License.
+
+   3.4 Licensee may not circumvent any technical measures that control access
+       to or use of the Licensed Work.
+
+4. NO WARRANTY
+
+   THE LICENSED WORK IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+
+5. LIMITATION OF LIABILITY
+
+   IN NO EVENT SHALL LICENSOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES ARISING OUT OF OR IN CONNECTION
+   WITH THIS AGREEMENT OR THE LICENSED WORK.
+
+6. TERMINATION
+
+   This Agreement is effective until the Change Date, unless earlier terminated
+   by Licensor if Licensee violates any provision hereof.
+
+7. GOVERNING LAW
+
+   This Agreement shall be governed by the laws of the State of California,
+   without regard to its conflict of laws principles.
+
+---
+
+COMMERCIAL LICENSING
+
+For commercial use of this software, please contact Richard Masci at:
+Email: rmasci@github.com
+
+Commercial licenses are available on a case-by-case basis and can include
+arrangements for revenue sharing, support, and custom modifications.
+
+---
+
+MIT License (Change License - Effective January 18, 2027)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
