@@ -320,7 +320,7 @@ rip dvd -c "Action" -m "The Matrix"
 ```
 
 **Parameters:**
-- `-c, --category` (required): Category for organizing the movie (e.g., "Action", "Comedy", "Drama")
+- `-c, --category` (required): Category for organizing the movie. This category becomes a directory in your storage structure (e.g., `-c "Action"` creates `/plex/storage/Action/`). You can then add this directory as a separate library in Plex or Jellyfin to organize your content. Examples: "Action", "Comedy", "Drama", "Horror", "Documentary"
 - `-m, --movie` (optional): Movie name to search for. If not provided, rip will attempt to discover it from the DVD
 - `-d, --device` (optional, default: `/dev/sr0`): Physical device path of your DVD drive
 
@@ -359,6 +359,60 @@ rip tv "Breaking Bad" 3-1 -d /dev/dvd
 4. **Cleanup**: Removes very short or very long files (not actual episodes)
 5. **File Renaming**: Renames episodes with proper titles from the database
 6. **Disc Eject**: Safely ejects the disc from your drive
+
+### Organizing Categories in Plex/Jellyfin
+
+The `-c` (category) flag you use with **rip** directly determines the directory structure. This is powerful because you can organize your entire library by creating separate **libraries** in Plex or Jellyfin for each category.
+
+#### Example Setup
+
+If you rip movies using these commands:
+
+```bash
+rip dvd -c "Action" -m "John Wick"
+rip dvd -c "Action" -m "Mission Impossible"
+rip dvd -c "Comedy" -m "Anchorman"
+rip dvd -c "Drama" -m "Parasite"
+```
+
+Your storage structure becomes:
+
+```
+/plex/storage/
+├── Action/
+│   ├── JohnWick(2014)/
+│   │   └── johnwick.mkv
+│   └── MissionImpossible(1996)/
+│       └── missionimpossible.mkv
+├── Comedy/
+│   └── Anchorman(2004)/
+│       └── anchorman.mkv
+└── Drama/
+    └── Parasite(2019)/
+        └── parasite.mkv
+```
+
+#### Setting Up Libraries in Plex
+
+1. Open Plex Web UI
+2. Go to **Settings** → **Libraries**
+3. Click **Add Library** for each category:
+   - Add "Action" library → point to `/plex/storage/Action`
+   - Add "Comedy" library → point to `/plex/storage/Comedy`
+   - Add "Drama" library → point to `/plex/storage/Drama`
+4. Each library will appear as a separate section in Plex
+
+#### Setting Up Libraries in Jellyfin
+
+1. Open Jellyfin Dashboard
+2. Go to **Libraries** → **Add Media Library**
+3. Create a new library for each category:
+   - Name: "Action" → Folder: `/plex/storage/Action`
+   - Name: "Comedy" → Folder: `/plex/storage/Comedy`
+   - Name: "Drama" → Folder: `/plex/storage/Drama`
+4. Each library shows as a separate collection on your dashboard
+
+This approach gives you complete control over how your media is organized and displayed!
 
 ### Post-Rip Steps
 

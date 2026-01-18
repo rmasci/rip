@@ -1,5 +1,6 @@
 # Define output directory
 OUTPUT_DIR = binaries
+RELEASE_DIR = release
 
 # Define binary name
 BINARY_NAME = rip
@@ -24,6 +25,14 @@ windows:
 linux:
 	@mkdir -p $(OUTPUT_DIR)/linux
 	GOOS=linux GOARCH=amd64 go build -o $(OUTPUT_DIR)/linux/$(BINARY_NAME) .
+
+# Build release binaries
+release: clean all
+	@mkdir -p $(RELEASE_DIR)
+	@cp $(OUTPUT_DIR)/linux/$(BINARY_NAME) $(RELEASE_DIR)/$(BINARY_NAME)-linux
+	@cp $(OUTPUT_DIR)/mac/$(BINARY_NAME) $(RELEASE_DIR)/$(BINARY_NAME)-mac
+	@cp $(OUTPUT_DIR)/windows/$(BINARY_NAME).exe $(RELEASE_DIR)/$(BINARY_NAME)-windows.exe
+	@echo "Release binaries created in $(RELEASE_DIR)/"
 
 # Clean up binaries
 clean:
