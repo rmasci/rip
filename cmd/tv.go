@@ -235,7 +235,7 @@ func renameWithFileBot(seasonNum, discNum, outDir string) error {
 	fmt.Printf("FileBot command: %s\n", cmd)
 
 	p := script.Exec(cmd).
-		Spinner("Renaming episodes...")
+		Spinner("Renaming episodes...", 1)
 	output, err := p.String()
 
 	// Always print the output for debugging

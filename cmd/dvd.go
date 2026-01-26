@@ -90,14 +90,14 @@ func dvdrip(cmd *cobra.Command, args []string) {
 		fmt.Printf("Found: %s\n", finalName)
 	}
 
-	// Step 3: Create output directory structure with CamelCase naming
-	// Directory format: [StoragePath]/Category/MovieNameYear/ (no spaces, camelCase)
-	dirName := toCamelCase(finalName)
-	outDir := filepath.Join(AppConfig.StoragePath, category, dirName)
+	// Step 3: Create output directory structure matching the movie name
+	// Directory format: [StoragePath]/Category/Movie Name (Year)/
+	// Jellyfin prefers the directory name to match the actual movie name
+	outDir := filepath.Join(AppConfig.StoragePath, category, finalName)
 	if err := os.MkdirAll(outDir, 0755); err != nil {
 		log.Fatalf("Error creating output directory: %v", err)
 	}
-	fmt.Printf("Putting movie in %s/%s\n", outDir, finalName)
+	fmt.Printf("Putting movie in %s\n", outDir)
 
 	// Step 4: Format device path for MakeMKV (handles both Linux and macOS)
 	drive := formatDriveForMakeMKV(device)
@@ -164,7 +164,7 @@ func isMountpoint(path string) bool {
 func fetchMetadata(query, format string) string {
 	// Execute FileBot list command to query TheMovieDB
 	p := script.Exec(fmt.Sprintf("filebot -list --db TheMovieDB --q '%s' --format '%s'", query, format)).
-		Spinner("Querying TMDB...")
+		Spinner("Querying TMDB...", 1)
 	out, err := p.String()
 	if err != nil {
 		log.Printf("Error fetching metadata: %v\n", err)
@@ -223,7 +223,7 @@ func runDVDMakeMKV(drive, outDir string) error {
 	// Uses the -r flag for robot mode (machine-readable output)
 	fmt.Println("Querying disc for available titles...")
 	p := script.Exec(fmt.Sprintf("makemkvcon -r info %s", drive)).
-		Spinner("Reading disc...")
+		Spinner("Reading disc...", 1)
 	infoOutput, err := p.String()
 	if err != nil {
 		return fmt.Errorf("error running makemkvcon info: %v", err)
@@ -286,7 +286,7 @@ func discoverMovieName(devicePath string) string {
 
 	// Query disc information using makemkvcon with robot mode (-r) output
 	p := script.Exec(fmt.Sprintf("makemkvcon -r info %s", drive)).
-		Spinner("Reading disc title...")
+		Spinner("Reading disc title...", 1)
 	out, err := p.String()
 	if err != nil {
 		log.Printf("Error running makemkvcon: %v", err)
@@ -329,7 +329,7 @@ func renameMovieWithFileBot(movieName, outDir string) error {
 	fmt.Printf("FileBot command: %s\n", cmd)
 
 	p := script.Exec(cmd).
-		Spinner("Renaming file...")
+		Spinner("Renaming file...", 1)
 	output, err := p.String()
 
 	// Always print the output for debugging
@@ -343,6 +343,7 @@ func renameMovieWithFileBot(movieName, outDir string) error {
 		// Check if files were actually renamed
 		return nil
 	}
+	fmt.Println("FileBot renamed to the correct movie name successfully.")
 
 	return nil
 }

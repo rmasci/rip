@@ -10,7 +10,15 @@ This tool is intended for personal use to back up media you own, and will contin
 
 **rip** is a command-line tool that automates the process of converting your personal DVD and TV show collection into a digital format compatible with media servers like Plex and Jellyfin.
 
-### Contribution
+This gives you a front end to MakeMKV and FileBot to rip and organize your DVDs and TV shows into a Plex or Jellyfin compatible format. It handles:
+- Detecting movie title from your DVD drive
+- Fetching metadata from TheMovieDB (movies) and TheTVDB (TV shows)
+- Extracting video using MakeMKV
+- Organizing files into a Plex/Jellyfin-compatible directory structure
+- Renaming files with proper episode/movie titles
+- Ejecting the disc when done (Linux version)
+
+### Contribution / Bugs
 This software isn't perfect, but you get what you paid for right? If you find bugs or have feature requests, please open an issue or submit a pull request on GitHub. Contributions are welcome!
 
 **License Note**: This project is licensed under the Business Source License (BSL 1.1). You are free to use, modify, and distribute this software for **non-commercial purposes**. For commercial use, please contact Richard Masci at rmasci@github.com to discuss licensing arrangements. See the [LICENSE](LICENSE) file for full details.
