@@ -256,7 +256,7 @@ func runDVDMakeMKV(drive, outDir string) error {
 	// Execute makemkvcon mkv command to rip the longest title
 	// --minlength=3600 ensures we only rip titles longer than 1 hour (for movies)
 	fmt.Printf("Starting MakeMKV rip (title %s)...\n", titleID)
-	mkv := script.Exec(fmt.Sprintf("makemkvcon mkv %s %s %s --minlength=3600", drive, titleID, outDir)).
+	mkv := script.Exec(fmt.Sprintf("makemkvcon mkv %s %s \"%s\" --minlength=3600", drive, titleID, outDir)).
 		Spinner("Extracting video...", 1)
 	output, err := mkv.String()
 	if err != nil {

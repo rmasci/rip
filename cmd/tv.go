@@ -193,7 +193,7 @@ func runTVMakeMKV(drive, outDir string) error {
 	//   all - rip all titles from the disc
 	//   outDir - destination folder for output files
 	//   --minlength=600 - only rip titles longer than 10 minutes
-	return script.Exec(fmt.Sprintf("makemkvcon mkv %s all %s --minlength=600", drive, outDir)).
+	return script.Exec(fmt.Sprintf("makemkvcon mkv %s all \"%s\" --minlength=600", drive, outDir)).
 		Spinner("Extracting episodes...", 1).
 		Error()
 }
