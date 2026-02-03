@@ -122,8 +122,15 @@ func VerifyStoragePath(storagePath string) error {
 }
 
 // GetMergerFSDisks reads /etc/fstab and returns the list of disks in the MergerFS pool
-// Returns empty slice if MergerFS is not configured
+// that mounts at the specified mount point (e.g., /plex/storage)
+// Returns empty slice if MergerFS is not found for that mount point
 func GetMergerFSDisks() []string {
+	return getMergerFSDisksForPath(AppConfig.StoragePath)
+}
+
+// getMergerFSDisksForPath reads /etc/fstab and returns the list of disks in the MergerFS pool
+// that mounts at the specified path. Returns empty slice if not found.
+func getMergerFSDisksForPath(mountPath string) []string {
 	fstabPath := "/etc/fstab"
 	content, err := os.ReadFile(fstabPath)
 	if err != nil {
@@ -138,16 +145,22 @@ func GetMergerFSDisks() []string {
 			continue
 		}
 
-		// Look for mergerfs entries
-		if strings.Contains(line, "mergerfs") {
+		// Parse fstab line: device mountpoint fstype options dump pass
+		parts := strings.Fields(line)
+		if len(parts) < 3 {
+			continue
+		}
+
+		device := parts[0]
+		mountpoint := parts[1]
+		fstype := parts[2]
+
+		// Check if this line matches our mount point and is mergerfs
+		if mountpoint == mountPath && strings.Contains(fstype, "mergerfs") {
 			// Format: /mnt/disk1:/mnt/disk2:/mnt/disk3 /plex/storage fuse.mergerfs ...
-			parts := strings.Fields(line)
-			if len(parts) >= 2 {
-				diskList := parts[0]
-				// Split the disk list by colons
-				disks := strings.Split(diskList, ":")
-				return disks
-			}
+			// Split the disk list by colons
+			disks := strings.Split(device, ":")
+			return disks
 		}
 	}
 
@@ -162,11 +175,14 @@ type DiskSpace struct {
 }
 
 // GetDiskWithMostSpace returns the mount point with the most available free space
-// from a list of disk mount points
+// from a list of disk mount points. Returns an error if no disk has at least 5GB free.
 func GetDiskWithMostSpace(diskPaths []string) (string, error) {
 	if len(diskPaths) == 0 {
 		return "", fmt.Errorf("no disk paths provided")
 	}
+
+	const minFreeSpaceGB = 5
+	const minFreeSpaceBytes = minFreeSpaceGB * 1024 * 1024 * 1024
 
 	var maxSpace uint64
 	var selectedDisk string
@@ -192,6 +208,12 @@ func GetDiskWithMostSpace(diskPaths []string) (string, error) {
 
 	if selectedDisk == "" {
 		return "", fmt.Errorf("could not determine disk with most space")
+	}
+
+	// Check if the disk with most space has at least 5GB free
+	if maxSpace < minFreeSpaceBytes {
+		availableGB := float64(maxSpace) / (1024 * 1024 * 1024)
+		return "", fmt.Errorf("insufficient free space: only %.2f GB available, need at least %d GB", availableGB, minFreeSpaceGB)
 	}
 
 	// Convert to GB for display
