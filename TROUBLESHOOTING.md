@@ -58,6 +58,16 @@ tail -f /var/log/rip-update.log
 
 **Cause:** MergerFS cache and policy settings can cause issues with large video files. Default settings may be too aggressive with caching or have incorrect file placement policies.
 
+**How rip Handles This:**
+
+The `rip update` command (and future rip DVD/TV commands) intelligently:
+1. **Detects MergerFS configuration** - Reads `/etc/fstab` to find configured disks
+2. **Selects the disk with most space** - Writes directly to that disk, bypassing MergerFS
+3. **Keeps MergerFS read-only** - MergerFS aggregates files from all disks for reading
+4. **Avoids coordination issues** - No caching/coordination problems between processes
+
+This approach avoids the cache contention and coordination issues that cause errors.
+
 **Solution:**
 
 ### 1. Verify MergerFS is Mounted Correctly
