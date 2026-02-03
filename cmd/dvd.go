@@ -120,7 +120,7 @@ func dvdrip(cmd *cobra.Command, args []string) {
 		fmt.Printf("Warning: FileBot rename failed: %v\n", err)
 	}
 
-	// Step 7: Eject the disc from the drive
+	// Step 7: Eject the disc from the drive (only if rip completed successfully)
 	devicePath := extractDevicePath(drive)
 	if err := ejectDisc(devicePath); err != nil {
 		fmt.Printf("Warning: Could not eject disc: %v\n", err)
@@ -206,7 +206,7 @@ func formatDriveForMakeMKV(devicePath string) string {
 
 // runDVDMakeMKV executes the MakeMKV command to rip the longest title from a DVD.
 // It first queries the disc to identify all available titles, finds the longest one,
-// then executes the rip operation. After ripping completes, it ejects the disc.
+// then executes the rip operation. Ejection is handled by the caller after all steps complete.
 //
 // Parameters:
 //
@@ -215,9 +215,6 @@ func formatDriveForMakeMKV(devicePath string) string {
 //
 // Returns an error if the makemkvcon command fails.
 func runDVDMakeMKV(drive, outDir string) error {
-	// Extract device path from the disc specification for ejection after ripping
-	devicePath := extractDevicePath(drive)
-	defer ejectDisc(devicePath)
 
 	// Step 1: Query the disc to get information about all available titles
 	// Uses the -r flag for robot mode (machine-readable output)

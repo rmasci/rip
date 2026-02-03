@@ -225,6 +225,46 @@ makemkvcon -v full info disc:0
 
 ---
 
+## MakeMKV Version Too Old or Expired
+
+**Problem:** Error message: `This application version is too old. Please download the latest version at http://www.makemkv.com/ or enter a registration key to continue using the current version.`
+
+Or: `Error during MakeMKV rip: error running makemkvcon info: exit status 253`
+
+**Cause:** MakeMKV version has expired or is outdated. MakeMKV periodically expires old beta versions.
+
+**Solution:**
+
+1. **Update MakeMKV to the latest version:**
+   ```bash
+   # macOS
+   brew upgrade makemkv
+   
+   # Linux - Ubuntu/Debian
+   sudo apt-get update
+   sudo apt-get install --only-upgrade makemkv-bin makemkv-oss
+   
+   # Or download latest from https://www.makemkv.com/download/
+   ```
+
+2. **Verify the updated version:**
+   ```bash
+   makemkvcon -v full
+   ```
+
+3. **Or enter a registration key** (if you have one):
+   ```bash
+   # Edit MakeMKV configuration file
+   nano ~/.config/MakeMKV/settings.conf
+   
+   # Add your registration key line:
+   # app_key = "xxxx-xxxx-xxxx-xxxx"
+   ```
+
+4. **Try the rip command again** after updating
+
+---
+
 ## FileBot Can't Find the Movie or Show
 
 **Problem:** FileBot returns "No matches found" or the wrong movie/show is selected
