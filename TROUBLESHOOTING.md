@@ -4,6 +4,54 @@ This guide helps you solve common issues when using the `rip` command-line tool.
 
 ---
 
+## Keeping MakeMKV Updated
+
+**Problem:** MakeMKV version expires and you get "This application version is too old" errors
+
+**Solution:** Use the built-in update command to automatically fetch and build the latest version
+
+### Manual Update
+
+Run this command anytime to update MakeMKV to the latest version:
+
+```bash
+rip update
+```
+
+This will:
+1. Check for the latest MakeMKV version on the official website
+2. Download both OSS and bin components
+3. Build and install them automatically
+4. Verify the installation
+
+### Automatic Weekly Updates (via Cron)
+
+Set up a weekly cron job to automatically keep MakeMKV current. Edit your crontab:
+
+```bash
+crontab -e
+```
+
+Add this line to run updates every Sunday at 2:00 AM:
+
+```bash
+# Update MakeMKV every Sunday at 2:00 AM
+0 2 * * 0 /usr/local/bin/rip update >> /var/log/rip-update.log 2>&1
+```
+
+Or for a different day/time:
+- `0 2 * * 1` - Monday at 2:00 AM
+- `0 2 * * 2` - Tuesday at 2:00 AM
+- `0 2 * * 3` - Wednesday at 2:00 AM
+- etc.
+
+**Check the cron log:**
+```bash
+tail -f /var/log/rip-update.log
+```
+
+---
+
 ## File Not Named Correctly After Rip
 
 **Problem:** The file is named `title_t00.mkv` instead of `The Break-Up (2006).mkv`
