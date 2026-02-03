@@ -88,12 +88,48 @@ brew install makemkv
 ```
 
 **Solution - Linux:**
-```bash
-# Ubuntu/Debian
-sudo apt-get install makemkv-bin makemkv-oss
 
-# Or download from: https://www.makemkv.com/
+MakeMKV is not available in standard Linux repositories. You must download and build it manually:
+
+```bash
+# Install dependencies first
+sudo apt-get install build-essential pkg-config libssl-dev libavcodec-extra
+
+# Create a working directory
+mkdir -p ~/makemkv && cd ~/makemkv
+
+# Download the latest version (check https://www.makemkv.com/download/ for latest version)
+# As of 2026, replace VERSION with the actual version number
+wget https://www.makemkv.com/download/makemkv-oss-VERSION.tar.gz
+wget https://www.makemkv.com/download/makemkv-bin-VERSION.tar.gz
+
+# Extract and build MakeMKV OSS
+tar xzf makemkv-oss-VERSION.tar.gz
+cd makemkv-oss-VERSION
+./configure
+make
+sudo make install
+cd ..
+
+# Extract and build MakeMKV bin
+tar xzf makemkv-bin-VERSION.tar.gz
+cd makemkv-bin-VERSION
+./configure
+make
+sudo make install
+cd ..
+
+# Verify installation
+makemkvcon -v full
 ```
+
+**Simplified Alternative (if you have snap):**
+```bash
+# Install via snap (if available on your system)
+sudo snap install makemkv
+```
+
+Or visit https://www.makemkv.com/download/ for precompiled binaries or other installation methods.
 
 **Verify installation:**
 ```bash
@@ -240,11 +276,12 @@ Or: `Error during MakeMKV rip: error running makemkvcon info: exit status 253`
    # macOS
    brew upgrade makemkv
    
-   # Linux - Ubuntu/Debian
-   sudo apt-get update
-   sudo apt-get install --only-upgrade makemkv-bin makemkv-oss
+   # Linux - Build from source (see "Command Not Found: makemkvcon" section above)
+   # Visit https://www.makemkv.com/download/ to get the latest version
+   # Then follow the build instructions in the Linux section
    
-   # Or download latest from https://www.makemkv.com/download/
+   # Or use snap if available
+   sudo snap refresh makemkv
    ```
 
 2. **Verify the updated version:**
