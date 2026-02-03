@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 )
 
 // Config holds the application configuration
@@ -118,4 +119,84 @@ func VerifyStoragePath(storagePath string) error {
 	os.Remove(testFile)
 
 	return nil
+}
+
+// GetMergerFSDisks reads /etc/fstab and returns the list of disks in the MergerFS pool
+// Returns empty slice if MergerFS is not configured
+func GetMergerFSDisks() []string {
+	fstabPath := "/etc/fstab"
+	content, err := os.ReadFile(fstabPath)
+	if err != nil {
+		return nil
+	}
+
+	lines := strings.Split(string(content), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		// Skip comments and empty lines
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		// Look for mergerfs entries
+		if strings.Contains(line, "mergerfs") {
+			// Format: /mnt/disk1:/mnt/disk2:/mnt/disk3 /plex/storage fuse.mergerfs ...
+			parts := strings.Fields(line)
+			if len(parts) >= 2 {
+				diskList := parts[0]
+				// Split the disk list by colons
+				disks := strings.Split(diskList, ":")
+				return disks
+			}
+		}
+	}
+
+	return nil
+}
+
+// DiskSpace represents information about a disk's available space
+type DiskSpace struct {
+	Path      string
+	Available uint64
+	Total     uint64
+}
+
+// GetDiskWithMostSpace returns the mount point with the most available free space
+// from a list of disk mount points
+func GetDiskWithMostSpace(diskPaths []string) (string, error) {
+	if len(diskPaths) == 0 {
+		return "", fmt.Errorf("no disk paths provided")
+	}
+
+	var maxSpace uint64
+	var selectedDisk string
+
+	for _, diskPath := range diskPaths {
+		// Get filesystem stats
+		var stat syscall.Statfs_t
+		err := syscall.Statfs(diskPath, &stat)
+		if err != nil {
+			// Skip disks that can't be accessed
+			fmt.Printf("Warning: Could not stat %s: %v\n", diskPath, err)
+			continue
+		}
+
+		// Calculate available space
+		available := stat.Bavail * uint64(stat.Bsize)
+
+		if available > maxSpace {
+			maxSpace = available
+			selectedDisk = diskPath
+		}
+	}
+
+	if selectedDisk == "" {
+		return "", fmt.Errorf("could not determine disk with most space")
+	}
+
+	// Convert to GB for display
+	availableGB := float64(maxSpace) / (1024 * 1024 * 1024)
+	fmt.Printf("Disk with most space: %s (%.2f GB available)\n", selectedDisk, availableGB)
+
+	return selectedDisk, nil
 }

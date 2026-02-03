@@ -30,8 +30,25 @@ Usage for cron (weekly):
 func updateMakeMKV(_ *cobra.Command, _ []string) {
 	fmt.Println("Checking for the latest MakeMKV version...")
 
-	// Create working directory in /tmp for temporary build files
-	workDir := "/tmp/makemkv"
+	// Try to use MergerFS disk with most space, fall back to /tmp if not available
+	var workDir string
+	mergerFSDisks := GetMergerFSDisks()
+
+	if len(mergerFSDisks) > 0 {
+		// MergerFS is configured, use disk with most space
+		selectedDisk, err := GetDiskWithMostSpace(mergerFSDisks)
+		if err == nil {
+			workDir = filepath.Join(selectedDisk, ".makemkv-build")
+			fmt.Printf("Using MergerFS disk for build: %s\n", selectedDisk)
+		} else {
+			fmt.Printf("Warning: %v, falling back to /tmp\n", err)
+			workDir = "/tmp/makemkv"
+		}
+	} else {
+		// MergerFS not configured, use /tmp
+		workDir = "/tmp/makemkv"
+	}
+
 	if err := os.MkdirAll(workDir, 0755); err != nil {
 		log.Fatalf("Error creating work directory: %v", err)
 	}
