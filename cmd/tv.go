@@ -231,7 +231,7 @@ func renameWithFileBot(seasonNum, discNum, outDir string) error {
 
 	// Execute FileBot rename command with --action move to actually rename files
 	fmt.Println("Running FileBot to rename episode files...")
-	cmd := fmt.Sprintf("filebot -rename %s -r --db TheTVDB --format '%s' --action move", outDir, renameFormat)
+	cmd := fmt.Sprintf("filebot -rename \"%s\" -r --db TheTVDB --format '%s' --action move", outDir, renameFormat)
 	fmt.Printf("FileBot command: %s\n", cmd)
 
 	p := script.Exec(cmd).

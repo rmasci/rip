@@ -322,7 +322,7 @@ func renameMovieWithFileBot(movieName, outDir string) error {
 	// Execute FileBot rename command with --action move to actually rename files
 	// Uses TheMovieDB database for metadata lookup
 	fmt.Println("Running FileBot to rename movie file...")
-	cmd := fmt.Sprintf("filebot -rename %s -r --db TheMovieDB --format '%s' --action move", outDir, renameFormat)
+	cmd := fmt.Sprintf("filebot -rename \"%s\" -r --db TheMovieDB --format '%s' --action move", outDir, renameFormat)
 	fmt.Printf("FileBot command: %s\n", cmd)
 
 	p := script.Exec(cmd).
