@@ -231,26 +231,43 @@ func runDVDMakeMKV(drive, outDir string) error {
 	re := regexp.MustCompile(`TINFO:(\d+),27,\d+,"(\d+)"`)
 	var longestTitleID string
 	var maxDuration int
+	titleDurations := make(map[string]int)
+
 	for _, line := range strings.Split(infoOutput, "\n") {
 		matches := re.FindStringSubmatch(line)
 		if len(matches) == 3 {
 			titleID := matches[1]
 			duration, _ := strconv.Atoi(matches[2])
+			durationSeconds := duration / 1000 // Convert milliseconds to seconds
+			titleDurations[titleID] = durationSeconds
+
 			// Keep track of the title with the maximum duration
-			if duration > maxDuration {
-				maxDuration = duration
+			if durationSeconds > maxDuration {
+				maxDuration = durationSeconds
 				longestTitleID = titleID
 			}
 		}
 	}
 
-	// Step 3: Run the mkv rip command with the longest title ID, or fall back to title 0
+	// Print all found titles for debugging
+	if len(titleDurations) > 0 {
+		fmt.Println("Found titles:")
+		for titleID, duration := range titleDurations {
+			minutes := duration / 60
+			seconds := duration % 60
+			fmt.Printf("  Title %s: %d min %d sec (%d seconds)\n", titleID, minutes, seconds, duration)
+		}
+	}
+
+	// Step 3: Run the mkv rip command with the longest title ID
 	titleID := longestTitleID
 	if titleID == "" {
 		fmt.Println("Warning: Could not determine longest title, using title 0")
 		titleID = "0"
 	} else {
-		fmt.Printf("Found longest title: %s (duration: %d seconds)\n", titleID, maxDuration)
+		minutes := maxDuration / 60
+		seconds := maxDuration % 60
+		fmt.Printf("Selected longest title: %s (%d min %d sec)\n", titleID, minutes, seconds)
 	}
 
 	// Execute makemkvcon mkv command to rip the longest title
