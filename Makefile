@@ -72,3 +72,35 @@ clean:
 version-info:
 	@echo "Current version: $(CURRENT_VERSION)"
 	@echo "Next version: $(NEW_VERSION)"
+
+# Update MakeMKV to the latest version
+update-makemkv:
+	@echo "Checking for the latest MakeMKV version..."
+	@mkdir -p ~/src/makemkv && cd ~/src/makemkv && \
+	LATEST_VERSION=$$(curl -s https://www.makemkv.com/download/ | grep -oP 'makemkv-oss-\K[0-9]+\.[0-9]+\.[0-9]+' | head -1); \
+	if [ -z "$$LATEST_VERSION" ]; then \
+		echo "Could not determine latest version. Please visit https://www.makemkv.com/download/"; \
+		exit 1; \
+	fi; \
+	echo "Latest MakeMKV version: $$LATEST_VERSION"; \
+	echo "Downloading MakeMKV $$LATEST_VERSION..."; \
+	wget -q https://www.makemkv.com/download/makemkv-oss-$$LATEST_VERSION.tar.gz && \
+	wget -q https://www.makemkv.com/download/makemkv-bin-$$LATEST_VERSION.tar.gz && \
+	echo "Extracting and building MakeMKV OSS..."; \
+	tar xzf makemkv-oss-$$LATEST_VERSION.tar.gz && \
+	cd makemkv-oss-$$LATEST_VERSION && \
+	./configure > /dev/null 2>&1 && \
+	make > /dev/null 2>&1 && \
+	sudo make install > /dev/null 2>&1 && \
+	cd .. && \
+	echo "Extracting and building MakeMKV bin..."; \
+	tar xzf makemkv-bin-$$LATEST_VERSION.tar.gz && \
+	cd makemkv-bin-$$LATEST_VERSION && \
+	./configure > /dev/null 2>&1 && \
+	make > /dev/null 2>&1 && \
+	sudo make install > /dev/null 2>&1 && \
+	cd .. && \
+	echo "Verifying installation..."; \
+	makemkvcon -r info disc:0 2>&1 | head -1 && \
+	echo "MakeMKV updated successfully to version $$LATEST_VERSION!"
+
