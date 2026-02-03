@@ -30,13 +30,8 @@ Usage for cron (weekly):
 func updateMakeMKV(_ *cobra.Command, _ []string) {
 	fmt.Println("Checking for the latest MakeMKV version...")
 
-	// Create working directory
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatalf("Error getting home directory: %v", err)
-	}
-
-	workDir := filepath.Join(homeDir, "src", "makemkv")
+	// Create working directory in /tmp for temporary build files
+	workDir := "/tmp/makemkv"
 	if err := os.MkdirAll(workDir, 0755); err != nil {
 		log.Fatalf("Error creating work directory: %v", err)
 	}
